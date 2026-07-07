@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: flask-bot-store
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 8901433681:AAGnY6CGkqx03AnM7PcRjooFi-J7lDby3Z8
+      - key: OWNER_ID
+        value: 7750222393

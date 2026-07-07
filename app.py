@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 import telebot
 import threading
+import time
 
 # ================== إعدادات البوت ==================
 BOT_TOKEN = "8901433681:AAGnY6CGkqx03AnM7PcRjooFi-J7lDby3Z8"
@@ -111,7 +112,7 @@ def create_order():
         pass
     return jsonify({'order_id': order_id, 'message': 'تم إنشاء الطلب'}), 201
 
-# ================== بوت تيليجرام ==================
+# ================== بوت تيليجرام (نسخة متوافقة) ==================
 bot = telebot.TeleBot(BOT_TOKEN)
 user_state = {}
 
@@ -177,7 +178,7 @@ def list_products_button(message):
         msg += f"\n🆔 `{p['id'][:8]}` | *{p['name']}* | 💰 {int(p['price'])}$"
     bot.reply_to(message, msg, parse_mode='Markdown')
 
-# ================== إضافة منتج (خطوات واضحة) ==================
+# ================== إضافة منتج ==================
 @bot.message_handler(func=lambda message: message.text == "➕ إضافة منتج")
 def add_product_button(message):
     if not is_authorized(message.from_user.id): return
@@ -386,17 +387,22 @@ def grant_id(message):
     except:
         bot.reply_to(message, "❌ حدث خطأ، تأكد من أن الايدي رقم صحيح.")
 
-# ================== زر الإلغاء (شامل) ==================
 @bot.message_handler(func=lambda message: message.text == "❌ إلغاء العملية")
 def cancel(message):
     cancel_operation(message)
 
+# ================== تشغيل البوت في خلفية ==================
 def run_bot():
-    print("🤖 البوت يعمل...")
-    bot.polling(none_stop=True)
+    try:
+        print("🤖 البوت يعمل...")
+        bot.polling(none_stop=True)
+    except Exception as e:
+        print(f"⚠️ البوت توقف: {e}")
 
+# بدء البوت في خيط منفصل
+threading.Thread(target=run_bot, daemon=True).start()
+
+# ================== تشغيل السيرفر ==================
 if __name__ == '__main__':
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.start()
     print("🔥 السيرفر يعمل على http://localhost:5000")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000)
