@@ -399,4 +399,4 @@ if __name__ == '__main__':
     bot_thread = threading.Thread(target=run_bot)
     bot_thread.start()
     print("🔥 السيرفر يعمل على http://localhost:5000")
-    app.run(host='0.0.0.0', port=20165, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False)
