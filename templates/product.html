@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product['name'] }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        #orderModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeInUp 0.4s ease;
+        }
+        #orderModal .modal-content {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            border: 2px solid #F5C518;
+            box-shadow: 0 0 60px rgba(245,197,24,0.15);
+        }
+        #orderModal h2 {
+            color: #F5C518;
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        #orderModal input {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 16px;
+            border: none;
+            background: #0a0a12;
+            color: white;
+            font-size: 16px;
+            border: 1px solid #2a2a3e;
+            transition: 0.3s;
+        }
+        #orderModal input:focus {
+            border-color: #F5C518;
+            outline: none;
+        }
+        #orderModal .btn-confirm {
+            background: linear-gradient(135deg, #F5C518, #FFD700);
+            color: #000;
+            padding: 16px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 20px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        #orderModal .btn-confirm:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 40px rgba(245,197,24,0.4);
+        }
+        #orderModal .btn-cancel {
+            margin-top: 12px;
+            background: #2a2a3e;
+            color: #aaa;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #orderModal .btn-cancel:hover {
+            background: #3a3a5e;
+            color: #fff;
+        }
+
+        #notificationModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeInUp 0.5s ease;
+        }
+        #notificationModal .notif-content {
+            background: #0a2a0a;
+            padding: 50px 40px;
+            border-radius: 40px;
+            text-align: center;
+            border: 3px solid #00ff88;
+            max-width: 500px;
+            box-shadow: 0 0 80px rgba(0,255,136,0.1);
+        }
+        #notificationModal .notif-content h2 {
+            color: #00ff88;
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        #notificationModal .notif-content p {
+            color: #ccc;
+            font-size: 20px;
+            line-height: 1.8;
+        }
+        #notificationModal .notif-content .btn-close {
+            margin-top: 25px;
+            background: #00ff88;
+            color: #000;
+            padding: 14px 50px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #notificationModal .notif-content .btn-close:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0,255,136,0.3);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo">🔥 متجر البوتات</a>
+        <div>
+            <a href="/">الرئيسية</a>
+            <a href="/shop">المتجر</a>
+        </div>
+    </nav>
+
+    <div class="product-detail">
+        <img src="{{ url_for('static', filename='uploads/' + product['image_path'].split('/')[-1]) if product['image_path'] else '/static/default.png' }}" class="main-img">
+        <h1>{{ product['name'] }}</h1>
+        <p>{{ product['description'] or 'لا يوجد وصف لهذا المنتج' }}</p>
+        <p class="price">💰 {{ product['price']|int }}$</p>
+        <p style="color: #FFD700; font-size: 20px; margin-top: -15px; margin-bottom: 25px;">💎 {{ (product['price'] * 100)|int }} جوهرة</p>
+        <button onclick="openOrderForm()" class="btn">🛒 شراء الآن</button>
+    </div>
+
+    <!-- نموذج الطلب -->
+    <div id="orderModal">
+        <div class="modal-content">
+            <h2>📝 طلب شراء</h2>
+            <p style="color:#aaa;margin-bottom:15px;">أدخل معلوماتك لتأكيد الطلب</p>
+            <input type="text" id="customerName" placeholder="👤 الاسم الكامل" required>
+            <input type="text" id="customerUsername" placeholder="📱 يوزر تيليجرام (بدون @)" required>
+            <button onclick="submitOrder()" class="btn-confirm">✅ تأكيد الطلب</button>
+            <br>
+            <button onclick="closeOrderForm()" class="btn-cancel">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- إشعار النجاح -->
+    <div id="notificationModal">
+        <div class="notif-content">
+            <h2>✅ تم الطلب!</h2>
+            <p>سيتم الرد عليك في أقرب وقت<br>على التيليجرام الخاص بك.</p>
+            <button onclick="closeNotification()" class="btn-close">حسناً</button>
+        </div>
+    </div>
+
+    <script>
+        function openOrderForm() {
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+        function closeOrderForm() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        function closeNotification() {
+            document.getElementById('notificationModal').style.display = 'none';
+            window.location.href = '/shop';
+        }
+
+        async function submitOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            const username = document.getElementById('customerUsername').value.trim();
+            const productId = '{{ product["id"] }}';
+
+            if (!name || !username) {
+                alert('⚠️ الرجاء ملء جميع الحقول');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        customer_name: name,
+                        customer_username: username
+                    })
+                });
+
+                if (res.ok) {
+                    closeOrderForm();
+                    document.getElementById('notificationModal').style.display = 'flex';
+                } else {
+                    alert('❌ حدث خطأ، حاول مرة أخرى');
+                }
+            } catch {
+                alert('❌ فشل الاتصال بالسيرفر');
+            }
+        }
+    </script>
+</body>
+</html>
